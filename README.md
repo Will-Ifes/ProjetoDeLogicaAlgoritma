@@ -1,6 +1,17 @@
+<p align="center">
+  <img src="./.github/readme-cover.svg" alt="Logic Foundations: Condições, entrada e repetição em Python." width="100%" />
+</p>
+
 # Lógica de programação · Python
 
 Exercícios independentes para praticar condições, variáveis, entrada e repetição em Python.
+
+## Explore o diferencial
+
+| Ponto de entrada | O que observar |
+| --- | --- |
+| [Decisão e limites](estruturas_condicao2.py) | O exercício de ramificações permite examinar comparações e seus limites. |
+| [Controle de execução](estruturas_condicao3.py) | O loop lê entradas até o usuário informar a condição de parada. |
 
 ## Conteúdo
 
