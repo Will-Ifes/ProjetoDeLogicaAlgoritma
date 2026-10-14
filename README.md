@@ -16,6 +16,79 @@ Três exercícios introdutórios (condição, faixas e repetição) revisitados 
 | [`logica/experiencia.py`](logica/experiencia.py) | `if/elif/else` com faixas | `classificar_experiencia(anos)` |
 | [`logica/leitura_numeros.py`](logica/leitura_numeros.py) | `while` com condição de parada | `ler_ate_zero(ler, escrever)` |
 
+## Arquitetura
+
+O menu só escolhe o exercício. Cada módulo separa a regra (função pura, testada) da demonstração (`main`, que imprime).
+
+```mermaid
+flowchart LR
+    U([Usuário]) --> M["python -m logica<br/>menu"]
+
+    subgraph demo [Demonstração · main]
+        T["temperatura.main()"]
+        E["experiencia.main()"]
+        L["leitura_numeros.main()"]
+    end
+
+    subgraph regras [Regras · funções puras]
+        TF["classificar_temperatura(graus)"]
+        EF["classificar_experiencia(anos)"]
+        LF["ler_ate_zero(ler, escrever)"]
+    end
+
+    subgraph testes [tests · pytest]
+        TT[test_temperatura]
+        TE[test_experiencia]
+        TL["test_leitura_numeros<br/>input e print simulados"]
+    end
+
+    M -->|1| T
+    M -->|2| E
+    M -->|3| L
+    T --> TF
+    E --> EF
+    L --> LF
+    TT -.-> TF
+    TE -.-> EF
+    TL -.-> LF
+```
+
+## Como cada exercício decide
+
+**1. Temperatura (`if/else`)**
+
+```mermaid
+flowchart TD
+    A([graus]) --> B{"graus < 30?"}
+    B -->|sim| C["A temperatura hoje está amena."]
+    B -->|não| D["Hoje está fazendo calor."]
+```
+
+**2. Nível de experiência (`if/elif/else`).** As faixas são contínuas, então todo valor tem destino.
+
+```mermaid
+flowchart TD
+    A([anos]) --> N{"anos < 0?"}
+    N -->|sim| X[/"ValueError"/]
+    N -->|não| J{"anos < 2?"}
+    J -->|sim| JR[júnior]
+    J -->|não| P{"anos < 5?"}
+    P -->|sim| PL[pleno]
+    P -->|não| SR[sênior]
+```
+
+**3. Leitura até zero (`while`)**
+
+```mermaid
+flowchart TD
+    I([início · lista vazia]) --> R[/"ler entrada e tirar espaços"/]
+    R --> Z{"entrada == '0'?"}
+    Z -->|sim| F([devolve a lista])
+    Z -->|não| V{"é um inteiro?"}
+    V -->|não| AV[/"avisa: não é número"/] --> R
+    V -->|sim| AD["adiciona à lista e mostra"] --> R
+```
+
 ## O que mudou na revisão
 
 **1. Um bug de limite.** A versão original classificava experiência com `< 2` e `> 2 and < 5`. Com exatamente 2 anos nenhuma das duas condições era verdadeira, e o valor caía no `else` como "sênior". Agora as faixas são contínuas, `[0, 2)`, `[2, 5)` e `[5, ∞)`, e o caso de 2 anos tem um teste próprio.
