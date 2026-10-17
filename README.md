@@ -2,48 +2,143 @@
   <img src="./.github/readme-cover.svg" alt="Logic Foundations: Condições, entrada e repetição em Python." width="100%" />
 </p>
 
-# Lógica de programação · Python
+# Lógica de programação · caso de estudo em Python
 
-Exercícios independentes para praticar condições, variáveis, entrada e repetição em Python.
+Três exercícios introdutórios (condição, faixas e repetição) revisitados com o olhar de hoje: funções puras, entrada validada, testes automatizados e lint.
 
-## Explore o diferencial
+**Python 3.10+ · pytest · ruff**
 
-| Ponto de entrada | O que observar |
-| --- | --- |
-| [Decisão e limites](estruturas_condicao2.py) | O exercício de ramificações permite examinar comparações e seus limites. |
-| [Controle de execução](estruturas_condicao3.py) | O loop lê entradas até o usuário informar a condição de parada. |
+## Exercícios
 
-## Conteúdo
+| Módulo | Conceito | Função principal |
+| --- | --- | --- |
+| [`logica/temperatura.py`](logica/temperatura.py) | `if/else` | `classificar_temperatura(graus)` |
+| [`logica/experiencia.py`](logica/experiencia.py) | `if/elif/else` com faixas | `classificar_experiencia(anos)` |
+| [`logica/leitura_numeros.py`](logica/leitura_numeros.py) | `while` com condição de parada | `ler_ate_zero(ler, escrever)` |
 
-| Arquivo | Conceito |
-| --- | --- |
-| [estruturas_condicao1.py](estruturas_condicao1.py) | Condição `if/else` aplicada à temperatura |
-| [estruturas_condicao2.py](estruturas_condicao2.py) | Ramificação `if/elif/else` com valores de experiência |
-| [estruturas_condicao3.py](estruturas_condicao3.py) | Leitura de entrada em loop até receber `0` |
+## Arquitetura
 
-<details>
-<summary><strong>Executar e consultar</strong></summary>
+O menu só escolhe o exercício. Cada módulo separa a regra (função pura, testada) da demonstração (`main`, que imprime).
 
-### Executar
+```mermaid
+flowchart LR
+    U([Usuário]) --> M["python -m logica<br/>menu"]
 
-Com Python 3 instalado, execute um arquivo por vez:
+    subgraph demo [Demonstração · main]
+        T["temperatura.main()"]
+        E["experiencia.main()"]
+        L["leitura_numeros.main()"]
+    end
 
-```bash
-python3 estruturas_condicao1.py
-python3 estruturas_condicao2.py
-python3 estruturas_condicao3.py
+    subgraph regras [Regras · funções puras]
+        TF["classificar_temperatura(graus)"]
+        EF["classificar_experiencia(anos)"]
+        LF["ler_ate_zero(ler, escrever)"]
+    end
+
+    subgraph testes [tests · pytest]
+        TT[test_temperatura]
+        TE[test_experiencia]
+        TL["test_leitura_numeros<br/>input e print simulados"]
+    end
+
+    M -->|1| T
+    M -->|2| E
+    M -->|3| L
+    T --> TF
+    E --> EF
+    L --> LF
+    TT -.-> TF
+    TE -.-> EF
+    TL -.-> LF
 ```
 
-O terceiro exercício solicita entrada no terminal. Digite `0` para encerrar.
+## Como cada exercício decide
 
-</details>
+**1. Temperatura (`if/else`)**
 
-<details>
-<summary>Escopo e referências</summary>
+```mermaid
+flowchart TD
+    A([graus]) --> B{"graus < 30?"}
+    B -->|sim| C["A temperatura hoje está amena."]
+    B -->|não| D["Hoje está fazendo calor."]
+```
 
-Material introdutório, sem dependências externas. O exemplo de experiência usa classificações didáticas, não critérios de avaliação profissional. Revisar os limites de comparação em 2 e 5 anos é um exercício adicional útil.
+**2. Nível de experiência (`if/elif/else`).** As faixas são contínuas, então todo valor tem destino.
 
-</details>
+```mermaid
+flowchart TD
+    A([anos]) --> N{"anos < 0?"}
+    N -->|sim| X[/"ValueError"/]
+    N -->|não| J{"anos < 2?"}
+    J -->|sim| JR[júnior]
+    J -->|não| P{"anos < 5?"}
+    P -->|sim| PL[pleno]
+    P -->|não| SR[sênior]
+```
+
+**3. Leitura até zero (`while`)**
+
+```mermaid
+flowchart TD
+    I([início · lista vazia]) --> R[/"ler entrada e tirar espaços"/]
+    R --> Z{"entrada == '0'?"}
+    Z -->|sim| F([devolve a lista])
+    Z -->|não| V{"é um inteiro?"}
+    V -->|não| AV[/"avisa: não é número"/] --> R
+    V -->|sim| AD["adiciona à lista e mostra"] --> R
+```
+
+## O que mudou na revisão
+
+**1. Um bug de limite.** A versão original classificava experiência com `< 2` e `> 2 and < 5`. Com exatamente 2 anos nenhuma das duas condições era verdadeira, e o valor caía no `else` como "sênior". Agora as faixas são contínuas, `[0, 2)`, `[2, 5)` e `[5, ∞)`, e o caso de 2 anos tem um teste próprio.
+
+**2. Lógica separada de entrada e saída.** Os scripts misturavam cálculo e `print`. Agora cada exercício expõe uma função que recebe valores e devolve resultado, o que permite testá-la sem terminal. O `main()` de cada módulo só demonstra a função.
+
+**3. Entrada validada.** O exercício 3 aceitava qualquer texto. Agora ele converte para inteiro, avisa quando a entrada não é número, ignora espaços em volta e devolve a lista lida. `input` e `print` são injetados como parâmetros, então os testes simulam o usuário.
+
+**4. Convenções.** Nomes em `snake_case`, constantes para os limites (`LIMITE_CALOR`, `LIMITE_PLENO`, `LIMITE_SENIOR`), type hints, docstrings e `ruff` para estilo e imports.
+
+| Antes | Depois |
+| --- | --- |
+| 3 scripts soltos na raiz | pacote `logica/` + menu `python -m logica` |
+| Nenhum teste | 15 casos com `pytest`, incluindo limites |
+| `tempoExperiencia = 2` → "sênior" | 2 anos → "pleno" |
+| Qualquer texto aceito no loop | Só inteiros; entrada inválida gera aviso |
+
+## Executar
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+source .venv/bin/activate     # Linux/macOS
+pip install -r requirements-dev.txt
+```
+
+Menu interativo com os três exercícios:
+
+```bash
+python -m logica
+```
+
+Um exercício direto:
+
+```bash
+python -m logica.experiencia
+```
+
+Testes e lint:
+
+```bash
+pytest
+ruff check .
+```
+
+## Para continuar praticando
+
+- Ler a temperatura do usuário no exercício 1, validando entrada como no exercício 3.
+- Fazer o exercício 3 mostrar soma, média e maior valor ao encerrar.
+- Escrever o teste antes da mudança e só depois implementar.
 
 ---
 
